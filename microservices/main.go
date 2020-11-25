@@ -45,7 +45,7 @@ func Get(c *gin.Context) {
 			Message: "invalid user id",
 			Code:    http.StatusBadRequest,
 		}
-		c.JSON(httpErr.Code, httpErr)
+		respond(c, http.StatusBadRequest, httpErr)
 		return
 	}
 	user := users[userID]
@@ -54,11 +54,21 @@ func Get(c *gin.Context) {
 			Message: "not found",
 			Code:    http.StatusNotFound,
 		}
-		c.JSON(httpErr.Code, httpErr)
+		respond(c, http.StatusBadRequest, httpErr)
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	respond(c, http.StatusOK, user)
+}
+
+func respond(c *gin.Context, httpCode int, body interface{}) {
+	isXML := (c.GetHeader("Accept") == "application/xml")
+	if isXML {
+		c.XML(httpCode, body)
+		return
+	}
+
+	c.JSON(httpCode, body)
 }
 
 // Create func
