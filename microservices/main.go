@@ -1,92 +1,9 @@
 package main
 
 import (
-	"net/http"
-	"strconv"
-
-	"github.com/gin-gonic/gin"
+	"github.com/beltranbot/go-rest-microservice-gin/microservices/app"
 )
-
-var (
-	users           = map[int64]*User{}
-	currentID int64 = 1
-	router          = gin.Default()
-)
-
-type httepError struct {
-	Message string `json:"message"`
-	Code    int    `json:"code"`
-}
-
-// User struct
-type User struct {
-	ID        int64  `json:"id"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-}
 
 func main() {
-	mapUrls()
-
-	router.Run(":8080")
-}
-
-func mapUrls() {
-	router.POST("/users", Create)
-	router.GET("/users/:id", Get)
-}
-
-// Get func
-func Get(c *gin.Context) {
-	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
-	if err != nil {
-		httpErr := httepError{
-			Message: "invalid user id",
-			Code:    http.StatusBadRequest,
-		}
-		respond(c, http.StatusBadRequest, httpErr)
-		return
-	}
-	user := users[userID]
-	if user == nil {
-		httpErr := httepError{
-			Message: "not found",
-			Code:    http.StatusNotFound,
-		}
-		respond(c, http.StatusBadRequest, httpErr)
-		return
-	}
-
-	respond(c, http.StatusOK, user)
-}
-
-func respond(c *gin.Context, httpCode int, body interface{}) {
-	isXML := (c.GetHeader("Accept") == "application/xml")
-	if isXML {
-		c.XML(httpCode, body)
-		return
-	}
-
-	c.JSON(httpCode, body)
-}
-
-// Create func
-func Create(c *gin.Context) {
-	var user User
-	if err := c.ShouldBindJSON(&user); err != nil {
-		httpErr := httepError{
-			Message: "invalid json body",
-			Code:    http.StatusBadRequest,
-		}
-		c.JSON(httpErr.Code, httpErr)
-		return
-	}
-
-	user.ID = currentID
-	currentID++
-	users[user.ID] = &user
-
-	// return created user
-	c.JSON(http.StatusCreated, user)
+	app.StartApplication()
 }
